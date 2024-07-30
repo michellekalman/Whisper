@@ -1,52 +1,51 @@
 import datetime
 import hashlib
 import socket
+from concurrent.futures import ThreadPoolExecutor
 
 import requests as requests
 import yaml
 
+from Models import EnrichedData
 from Utils import tcp_enrich_data, http_enrich_data
-
-
-class EnrichedData:
-    def __init__(self, data, timestamp, client_ip, client_port, hashed_data):
-        self.data = data
-        self.timestamp = "timestamp: " + str(timestamp)
-        self.client_ip = " client ip address: " + client_ip
-        self.client_port = " client_port port: " + str(client_port)
-        self.hashed_data = " hashed_data: " + str(hashed_data.digest())
 
 
 class Whisper:
     def __init__(self):
         self.listening_port = config['listening_port']
         self.ip_binding_address = config["ip_binding_address"]
+        self.socket_timeout = config['socket_timeout']
+        self.maximum_thread_number = config['maximum_thread_number']
         self.server_ip = config['target_server_details']['server_ip']
         self.server_port = config['target_server_details']['server_port']
         self.protocol = config['target_server_details']['protocol']
         self.http_url = config['target_server_details']['http_url']
-        self.socket_timeout = config.get('socket_timeout', 10)  # Set default timeout to 10 seconds if not provided
 
-    def receive_data(self):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind((self.ip_binding_address, self.listening_port))
-            s.listen()
-            conn, client_addr = s.accept()
-            conn.settimeout(self.socket_timeout)
-            with conn:
-                print(f"Connected by {client_addr}")
-                data = b""
-                while True:
-                    try:
-                        data += conn.recv(1024)
-                    except socket.timeout:
-                        break
+    def receive_data(self, conn, client_addr):
+        conn.settimeout(self.socket_timeout)
+        print(f"Connected by {client_addr}")
+        data = b""
+        try:
+            while True:
+                packet = conn.recv(1024)
+                if not packet:
+                    break
+                data += packet
+        except socket.timeout:
+            pass
+        finally:
+            conn.close()
 
-                    if not data:
-                        break
-
-                return EnrichedData(data=data, timestamp=datetime.datetime.now(), client_ip=client_addr[0],
-                                    client_port=client_addr[1], hashed_data=hashlib.md5(data))
+        if data:
+            enriched_data = EnrichedData(
+                data=data,
+                timestamp=datetime.datetime.now(),
+                client_ip=client_addr[0],
+                client_port=client_addr[1],
+                hashed_data=hashlib.md5(data)
+            )
+            return enriched_data
+        return None
 
     def transfer_http_data(self, enriched_data):
         response = requests.post(self.http_url, json=enriched_data)
@@ -66,14 +65,31 @@ class Whisper:
             tcp_enriched_data = tcp_enrich_data(enriched_data)
             return self.transfer_tcp_data(tcp_enriched_data)
 
+    def start_server(self):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind((self.ip_binding_address, self.listening_port))
+            s.listen()
+            print(f"Server listening on {self.ip_binding_address}:{self.listening_port}")
+
+            # max_workers parameter specifies the maximum number of threads that can be used simultaneously
+            with ThreadPoolExecutor(max_workers=10) as executor:
+                while True:
+                    conn, client_addr = s.accept()
+                    print(f"Accepted connection from {client_addr}")
+                    # For each new connection, it accepts the connection and submits the handle_new_client task to
+                    # handle the new client
+                    executor.submit(self.handle_new_client, conn, client_addr)
+
+    def handle_new_client(self, conn, client_addr):
+        enriched_data = self.receive_data(conn, client_addr)
+        if enriched_data:
+            res = self.transfer_data(enriched_data)
+            print(f"Data sent with status code: {res}")
+
 
 if __name__ == '__main__':
     with open('config.yaml', 'r') as file:
         config = yaml.safe_load(file)
 
     whisper = Whisper()
-    while True:
-        print(1)
-        general_enriched_data = whisper.receive_data()
-        res = whisper.transfer_data(general_enriched_data)
-        print(f"Data sent with status code: {res}")
+    whisper.start_server()

@@ -2,8 +2,17 @@
  listening_port: 1111
  ip_binding_address: "127.0.0.1"
  socket_timeout: 1
+ maximum_thread_number: 10
+# target_server_details:
+#    server_ip: "127.0.0.1"
+#    server_port: 2222
+#    protocol: "TCP"
+#    http_url: "http://somewhere.com/data"
+
+
+
  target_server_details:
     server_ip: "127.0.0.1"
-    server_port: 2222
-    protocol: "TCP"
-    http_url: "http://somewhere.com/data"
+    server_port: 8080
+    protocol: "HTTP"
+    http_url: "http://127.0.0.1:8080"
