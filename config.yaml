@@ -1,0 +1,9 @@
+---
+ listening_port: 1111
+ ip_binding_address: "127.0.0.1"
+ socket_timeout: 1
+ target_server_details:
+    server_ip: "127.0.0.1"
+    server_port: 2222
+    protocol: "TCP"
+    http_url: "http://somewhere.com/data"
