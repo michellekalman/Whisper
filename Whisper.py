@@ -26,25 +26,26 @@ class Whisper:
     def _receive_data(self, conn, client_addr):
         conn.settimeout(self.socket_timeout)
         print(f"Connected by {client_addr}")
-        data = b""
+        all_data = b""
         try:
             while True:
-                packet = conn.recv(1024)
-                if not packet:
+                data = conn.recv(1024)
+                if not data:
                     break
-                data += packet
+                all_data += data
         except socket.timeout:
             pass
         finally:
             conn.close()
 
-        if data:
+        if all_data:
+            decrypted_data = cipher_suite.decrypt(all_data)
             enriched_data = EnrichedData(
-                data=data,
+                data=decrypted_data,
                 timestamp=datetime.datetime.now(),
                 client_ip=client_addr[0],
                 client_port=client_addr[1],
-                hashed_data=hashlib.md5(data)
+                hashed_data=hashlib.md5(decrypted_data)
             )
             return enriched_data
         return None
@@ -96,5 +97,6 @@ if __name__ == '__main__':
     with open('config.yaml', 'r') as file:
         config = yaml.safe_load(file)
 
+    cipher_suite = Fernet(config['fernet_key'])
     whisper = Whisper()
     whisper.start_server()

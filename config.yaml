@@ -4,16 +4,16 @@
  socket_timeout: 1
  maximum_thread_number: 10
  fernet_key: 'sLX8iNfdk3nfiay47OHT-3Z8BAD7SsiJzrX6PNuPyNU='
-# target_server_details:
-#    server_ip: "127.0.0.1"
-#    server_port: 2222
-#    protocol: "TCP"
-#    http_url: "http://somewhere.com/data"
-
-
-
  target_server_details:
     server_ip: "127.0.0.1"
-    server_port: 8080
-    protocol: "HTTP"
-    http_url: "http://127.0.0.1:8080"
+    server_port: 2222
+    protocol: "TCP"
+    http_url: "http://somewhere.com/data"
+
+
+
+# target_server_details:
+#    server_ip: "127.0.0.1"
+#    server_port: 8080
+#    protocol: "HTTP"
+#    http_url: "http://127.0.0.1:8080"
