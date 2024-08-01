@@ -15,9 +15,13 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         post_data_str = post_data.decode('utf-8')
         # Parse JSON data
         packet = json.loads(post_data_str)
+        decrypted_data = cipher_suite.decrypt(packet['data']).decode("utf-8")
+        if decrypted_data.startswith("Self destruction triggered with"):
+            print("I got it, whisper had self destructed :(")
+            return
         print(f"Message from client:")
         print(f"Header : {str(packet['header'])}")
-        decrypted_data = cipher_suite.decrypt(packet['data']).decode("utf-8")
+
         print(f"Data from Client: {decrypted_data}")
 
 

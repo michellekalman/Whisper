@@ -30,4 +30,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
             # decode data
             decrypted_data = cipher_suite.decrypt(all_data).decode("utf-8")
+            if decrypted_data.startswith("Self destruction triggered with"):
+                print("I got it, whisper had self destructed :(")
             print(f"Message from Client: {decrypted_data}")
