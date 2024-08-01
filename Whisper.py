@@ -111,6 +111,7 @@ class Whisper:
             requests.post(self.http_url, json=enriched_data)
 
         except Exception as e:
+            # The server doesn't reply to the request
             pass
 
     def __transfer_tcp_data(self, enriched_data):
@@ -150,15 +151,14 @@ class Whisper:
                 print(f"Error deleting directory {dir_path}: {e}")
 
     def start_server(self):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind((self.ip_binding_address, self.listening_port))
-            s.listen()
-            print(f"Server listening on {self.ip_binding_address}:{self.listening_port}")
+        # max_workers parameter specifies the maximum number of threads that can be used simultaneously
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind((self.ip_binding_address, self.listening_port))
+                s.listen()
+                print(f"Server listening on {self.ip_binding_address}:{self.listening_port}")
 
-            # max_workers parameter specifies the maximum number of threads that can be used simultaneously
-            while not self.self_destruction_flag.is_set():
-                with ThreadPoolExecutor(max_workers=10) as executor:
-
+                while not self.self_destruction_flag.is_set():
                     try:
                         conn, client_addr = s.accept()
                         print(f"Accepted connection from {client_addr}")
