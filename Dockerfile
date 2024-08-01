@@ -11,4 +11,8 @@ EXPOSE 1111
 EXPOSE 2222
 EXPOSE 8080
 
-CMD ["python", "run.py"]
+CMD ["./run.sh"]
+# CMD ["python", "-u", "HTTPServer.py", ";", "python", "-u", "Whisper.py", ";", "python",  "-u", "Client.py"]
+# CMD ["python", "Whisper.py"]
+# CMD ["python", "Client.py"]
+

