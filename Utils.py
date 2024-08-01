@@ -16,6 +16,6 @@ def http_enrich_data(enriched_data):
     }
     enriched_data = {
         'header': header,
-        'data': enriched_data.data.decode('utf-8')
+        'data': enriched_data.data
     }
     return enriched_data
